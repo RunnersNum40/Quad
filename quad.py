@@ -7,14 +7,13 @@ class Quad:
 	def __init__(self, config_file):
 		self.config = Config()
 		self.config.read_config(config_file)
-		self.servos = Servos(16, self.config.mimimum_pulse, self.config.maximum_pulse, self.config.kill_angle)
+		self.servos = Servos(16, self.config.mimimum_pulse, self.config.maximum_pulse, self.config.kill_angle, self.config.angle_offsets)
 
 		legs = []
 		for i in range(4):
 			leg = Leg(self.config.quadrants[i], self.config.positions[i])
 			leg.servos(*(self.servos.servo[x] for x in serlf.config.servo_pins[i]))
-			leg.offsets(*offsets[i])
-			leg.limbs(*lengths)
+			leg.limbs(*self.config["leg"+str(i)]["lengths"])
 			legs.append(leg)
 		self.leg0, self.leg1, self.leg2, self.leg3 = legs
 

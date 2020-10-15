@@ -52,6 +52,7 @@ class Config:
 
 	def read_config(self, file_name):
 		#parse all the data into a string with no extra white space or comments
+		self.file = file_name
 		with open(file_name) as config_file:
 			data = [line.strip() for line in config_file]
 			#remove lines that are only whitespace
@@ -88,7 +89,7 @@ class Config:
 		elif sum((list(subsection.keys()) for subsection in self.config.values()), start=[]).count(index) == 1:
 			return {key:subsection[key] for subsection in self.config.values() for key in subsection.keys()}[index]
 		else:
-			raise Exception("'{}' not found in config file".format(index))
+			raise Exception("'{}' not found in config file or defined more than once. Check file {}".format(index, self.file))
 
 	def __str__(self):
 		return str(self.config)
@@ -101,5 +102,6 @@ if __name__ == '__main__':
 		con = Config()
 		con.read_config("quad.config")
 		print(con)
+		print(con.servos)
 	finally:
 		pass

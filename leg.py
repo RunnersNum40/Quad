@@ -14,11 +14,6 @@ class Leg:
 		self.femur = femur
 		self.tibia = tibia
 
-	def offsets(self, hip=0, knee=0, ankle=0):
-		self.hipoff = hip
-		self.kneeoff = knee
-		self.ankleoff = ankle
-
 	def servos(self, hip, knee, ankle):
 		self.hip = hip
 		self.knee = knee
@@ -44,6 +39,6 @@ class Leg:
 		k = degrees(b1+b2)%360
 		a = degrees(acos((self.femur**2+self.tibia**2-d**2)/(2*self.femur*self.tibia)))%360
 
-		self.hip.angle = (h+self.hipoff)*self.quadrant[0]
-		self.knee.angle = (k+self.kneeoff)*self.quadrant[1]
-		self.ankle.angle = (a+self.ankleoff)*self.quadrant[2]
+		self.hip.angle = h*self.quadrant[0]
+		self.knee.angle = k*self.quadrant[1]
+		self.ankle.angle = k*self.quadrant[2]

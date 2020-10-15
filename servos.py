@@ -13,14 +13,19 @@ def is_number(n):
 
 
 class Servos:
-	def __init__(self, num=16, mimimum_pulse=450, maximum_pulse=2450, kill_angle=90):
+	def __init__(self, num=16, mimimum_pulse=450, maximum_pulse=2450, kill_angle=90, angle_offsets=None):
 		self.kill_angle = kill_angle
 		self.kit = ServoKit(channels=16)
-		self.servos = [Servo(self.kit.servo[x], x) for x in range(16)]
+		if angle_offsets != None:
+			self.offsets = angle_offsets
+		else:
+			self.offsets = [0 for n in range(self.num)]
+
+		self.servos = [Servo(self.kit.servo[x], x, o) for x, o in zip(range(num), offsets)]
 		for servo in self.servos:
 			servo.kit_servo.set_pulse_width_range(mimimum_pulse, maximum_pulse)
 
-	def set(self, angle):
+	def set_all(self, angle):
 		for servo in self.servos:
 			servo.angle = angle
 
@@ -32,15 +37,16 @@ class Servos:
 
 	def __del__(self):
 		"""When the program ends set all servos to a predefined position to ensure replicable behavior when progam is not running"""
-		self.set(self.kill_angle)
+		self.set(self.kill_angle) 
 
 
 
 class Servo:
-	def __init__(self, kit_servo, num):
+	def __init__(self, kit_servo, num, offset):
 		self.kit_servo = kit_servo
 		self.num = num
 		self._angle = None
+		self.offset = offset
 		self.wait = False #if True the servo will wait until it has rotated to the desired location before letting code resume
 
 	@property
@@ -54,9 +60,13 @@ class Servo:
 	def angle(self, new_angle):
 		if not is_number(new_angle):
 			raise Exception("Angle assigments must be numbers, {} is not a valid assignment".format(repr(new_angle)))
-		elif not 0<=new_angle<=180:
-			raise Exception("Servo angles must be between 0 and 180 degrees, {} is not a valid assignment".format(new_angle))
+		elif not 0<=new_angle-self.offset<=180:
+			if not 0<=new_angle-self.offset<=180:
+				raise Exception("Servo angles must be between 0 and 180 degrees, {} is not a valid assignment".format(new_angle))
+			else:
+				raise Exception("Servo angles must be between 0 and 180 degrees, with an offset of {}, {} is not a valid assignment".format(self.offset, new_angle))
 		else:
+			new_angle -= self.offset
 			self._angle = new_angle
 			self.kit_servo.angle = self._angle
 			if self.wait:
