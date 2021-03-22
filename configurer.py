@@ -21,9 +21,23 @@ class Config:
 
 	@staticmethod
 	def replace(str1, str2, start, end):
+		"""Replace the section str1[start:end] with str2
+
+		Input:
+			str1 : Outer string with the section that is replaced
+			str2 : Substring to be insterted in the place of section
+			start : Index of str1 to start replacement
+			end : Index of str1 to end replacement
+		Output: str1[:start]+str2+str1[end:]
+		"""
 		return str1[:start]+str2+str1[end:]
 
 	def read_section(self, section):
+		"""Read in a section of a config file
+		Input:
+			section : List form with strings of each line of the section
+		Output: Dictionary with header keys and matching values
+		"""
 		#make sure each line conatins one assignment
 		for item in section:
 			if sum([item.count(x) for x in self.equality]) != 1:
@@ -45,8 +59,7 @@ class Config:
 						raise Exception("References cannot loop")
 
 		#turn all assigments into python data-types
-		for key in section:
-			section[key] = eval(section[key])
+		section = {key:eval(value) for key, value in section.items()}
 
 		return section
 
@@ -62,24 +75,21 @@ class Config:
 
 		#find headers in the file (denoted by [header name])
 		headers = [*re.finditer(r"\n+\[([^{}]+)\]\n".format(self.equality), data)] 
-		
-		raw = [header.group(1) for header in headers]
-		if not all(raw.count(header.group(1)) == 1 for header in headers):
+
+		if len({header.group(1) for header in headers}) != len(headers):
 			raise Exception("All headers must be unique")
-		del raw
 
 		#isolate each section into it's own string
 		sections = {header.group(1):data[header.span()[1]:len(data)-1 if n+1 == len(headers) else headers[n+1].span()[0]].split("\n") for n, header in enumerate(headers[:])}
 
-		config = {}
+		self.config = {}
 		for header in sections:
-			config[header] = self.read_section(sections[header])
-
-		self.config = config
+			self.config[header] = self.read_section(sections[header])
 
 	def __getattr__(self, attr):
+		print(attr)
 		if attr == "config":
-			raise Exception("Must read a file before retrieving data")
+			raise KeyError("Must read a file before retrieving data")
 		else:
 			return self[attr]
 
@@ -89,7 +99,7 @@ class Config:
 		elif sum((list(subsection.keys()) for subsection in self.config.values()), start=[]).count(index) == 1:
 			return {key:subsection[key] for subsection in self.config.values() for key in subsection.keys()}[index]
 		else:
-			raise Exception("'{}' not found in config file or defined more than once. Check file {}".format(index, self.file))
+			raise KeyError("'{}' not found in config file or defined more than once. Check file {}".format(index, self.file))
 
 	def __str__(self):
 		return str(self.config)
@@ -97,11 +107,17 @@ class Config:
 	def keys(self):
 		return self.config.keys()
 
+	def items(self):
+		return self.config.items()
+
+	def clear(self):
+		self.config.clear()
+
+
+
 if __name__ == '__main__':
-	try:
-		con = Config()
-		con.read_config("quad.config")
-		print(con)
-		print(con.servos)
-	finally:
-		pass
+	con = Config()
+	con.read_config("quad.config")
+	# print(con)
+	# print(con.servos)
+	con.test()
