@@ -11,9 +11,10 @@ class Quad:
 
 		legs = []
 		for i in range(4):
-			leg = Leg(self.config.quadrants[i], self.config.positions[i])
-			leg.servos(*(self.servos.servo[x] for x in serlf.config.servo_pins[i]))
-			leg.limbs(*self.config["leg"+str(i)]["lengths"])
+			leg_config = self.config[f"leg{i+1}"]
+			leg = Leg(leg_config["quadrants"], leg_config["positions"])
+			leg.servos(*(self.servos[x] for x in leg_config["servo_pins"]))
+			leg.limbs(*leg_config["limb_lengths"])
 			legs.append(leg)
 		self.leg0, self.leg1, self.leg2, self.leg3 = legs
 
@@ -28,5 +29,5 @@ if __name__ == '__main__':
 	q = Quad("quad.config")
 	q[0].set(150, 150, 150)
 	sleep(3)
-	q[0].set(150, 100, -150)
+	q[0].set(150, -100, 150)
 	sleep(3)

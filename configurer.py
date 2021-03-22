@@ -87,7 +87,6 @@ class Config:
 			self.config[header] = self.read_section(sections[header])
 
 	def __getattr__(self, attr):
-		print(attr)
 		if attr == "config":
 			raise KeyError("Must read a file before retrieving data")
 		else:
@@ -96,7 +95,7 @@ class Config:
 	def __getitem__(self, index):
 		if index in self.config.keys():
 			return self.config[index]
-		elif sum((list(subsection.keys()) for subsection in self.config.values()), start=[]).count(index) == 1:
+		elif sum((list(subsection.keys()) for subsection in self.config.values()), []).count(index) == 1:
 			return {key:subsection[key] for subsection in self.config.values() for key in subsection.keys()}[index]
 		else:
 			raise KeyError("'{}' not found in config file or defined more than once. Check file {}".format(index, self.file))
@@ -118,6 +117,4 @@ class Config:
 if __name__ == '__main__':
 	con = Config()
 	con.read_config("quad.config")
-	# print(con)
-	# print(con.servos)
-	con.test()
+	print(con["leg1"]["quadrants"])

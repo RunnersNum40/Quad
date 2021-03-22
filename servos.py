@@ -4,8 +4,7 @@ from time import sleep
 def is_number(n):
 	"""Tests if the provided value can be treted as a number"""
 	try:
-		n+1
-		1+n
+		n+1; 1+n; n-1; 1-n
 		return True
 	except ValueError:
 		return False
@@ -21,7 +20,7 @@ class Servos:
 		else:
 			self.offsets = [0 for n in range(self.num)]
 
-		self.servos = [Servo(self.kit.servo[x], x, o) for x, o in zip(range(num), offsets)]
+		self.servos = [Servo(self.kit.servo[n], n, offset) for n, offset in enumerate(self.offsets)]
 		for servo in self.servos:
 			servo.kit_servo.set_pulse_width_range(mimimum_pulse, maximum_pulse)
 
@@ -37,7 +36,7 @@ class Servos:
 
 	def __del__(self):
 		"""When the program ends set all servos to a predefined position to ensure replicable behavior when progam is not running"""
-		self.set(self.kill_angle) 
+		self.set_all(self.kill_angle) 
 
 
 
