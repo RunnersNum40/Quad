@@ -10,6 +10,7 @@ class Leg:
         self.z = 0.0
 
     def limbs(self, coxa, femur, tibia):
+        """Set the limb lengths"""
         self.coxa = coxa
         self.femur = femur
         self.tibia = tibia
@@ -25,6 +26,8 @@ class Leg:
     @property
     def pos(self):
         return (self.x, self.y, self.z)
+
+    def set( )
 
     def set(self, x, y, z):
         self.x, self.y, self.z = (cord-offset for cord, offset in zip((x, y, z), self.offsets))

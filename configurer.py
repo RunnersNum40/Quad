@@ -10,7 +10,6 @@ class Config:
     a Config object takes the comment character, refrence braces, and the equality sign. Deafults are #, <>, and = respectively
     to read a file call object.read_config(file_name)
     """
-
     def __init__(self, comment="#", reference="<>", equality="=:"):
         self.comment = comment #defines the character used to escape comments
         self.reference = reference #defines the pair of characters that denote refrences
@@ -41,7 +40,7 @@ class Config:
         #make sure each line conatins one assignment
         for item in section:
             if sum([item.count(x) for x in self.equality]) != 1:
-                raise Exception("In {} can only have one equality symbol".format(item))
+                raise Exception("In {}, can only have one equality symbol".format(item))
         #split each line into the value name and value assigment
         section = [re.split(self.equality_ex, item) for item in section]
         section = {item[0].strip():item[1].strip() for item in section}
@@ -71,22 +70,25 @@ class Config:
             #remove lines that are only whitespace
             data = [line for line in data if not re.match(r"[^\S]+", line) and len(line) > 0] 
             #group all non comment lines into one string
-            data = "\n"+"".join(line+"\n" for line in data if line[0] != self.comment)
+            data = "\n".join(line for line in data if line[0] != self.comment)
 
         #find headers in the file (denoted by [header name])
-        headers = [*re.finditer(r"\n+\[([^{}]+)\]\n".format(self.equality), data)] 
+        headers = [*re.finditer(r"(?<![^\n])\n*\[([^{}]+)\]\n*".format(self.equality), data)] 
 
         if len({header.group(1) for header in headers}) != len(headers):
             raise Exception("All headers must be unique")
 
         #isolate each section into it's own string
-        sections = {header.group(1):data[header.span()[1]:len(data)-1 if n+1 == len(headers) else headers[n+1].span()[0]].split("\n") for n, header in enumerate(headers[:])}
+        sections = {header.group(1):data[header.span()[1]:len(data) if n+1 == len(headers) else headers[n+1].span()[0]] for n, header in enumerate(headers[:])}
+
+        #split the section into lines
+        sections = {key:value.strip().split("\n") for key, value in sections.items()}
 
         self.config = {}
         for header in sections:
             self.config[header] = self.read_section(sections[header])
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr, *args):
         if attr == "config":
             raise KeyError("Must read a file before retrieving data")
         else:
@@ -98,7 +100,7 @@ class Config:
         elif sum((list(subsection.keys()) for subsection in self.config.values()), []).count(index) == 1:
             return {key:subsection[key] for subsection in self.config.values() for key in subsection.keys()}[index]
         else:
-            raise KeyError("'{}' not found in config file or defined more than once. Check file {}".format(index, self.file))
+            raise KeyError("{} not found in config file or defined more than once. Check file {}".format(repr(index), self.file))
 
     def __str__(self):
         return str(self.config)
@@ -113,8 +115,7 @@ class Config:
         self.config.clear()
 
 
-
 if __name__ == '__main__':
     con = Config()
     con.read_config("quad.config")
-    print(con["leg1"]["quadrants"])
+    print(con.keys) 
