@@ -1,22 +1,37 @@
 import re
 
-class Config:
+class Config_Reader:
     """
-    Reads config files.
+    Reads config files. Config readers are factory objects of the Config class.
     
-    config files follow the format of headers (eg. [header1]) with values underneath (eg. value1 = 1)
-    config files allow comments (eg. #This is a comment) and refrences to other values under the same header (eg. value2 = <value1>*2)
+    Config files follow the format of headers (eg. [header1]) with values underneath (eg. value1 = 1)
+    Config files allow comments (eg. #This is a comment) and refrences to other values under the same header (eg. value2 = <value1>*2)
 
-    a Config object takes the comment character, refrence braces, and the equality sign. Deafults are #, <>, and = respectively
-    to read a file call object.read_config(file_name)
+    A Config_Reader object takes the comment character, refrence braces, and the equality sign. Deafults are #, <>, and = respectively
+    to read a file call object.read_config(file_name) and retrive a Config object.
     """
     def __init__(self, comment="#", reference="<>", equality="=:"):
         self.comment = comment #defines the character used to escape comments
         self.reference = reference #defines the pair of characters that denote refrences
         self.equality = equality #defines the characters that signify assignment
 
-        self.references_ex = r"({}[^\>]*?{})".format(self.reference[0], self.reference[1]) #regex used to find refrences
-        self.equality_ex = r"[{}]".format(self.equality) #regex used to find assignments
+    @property
+    def reference(self):
+        return self._reference
+
+    @reference.setter
+    def reference(self, value):
+        self._reference = value
+        self.references_ex = r"({}[^\>]*?{})".format(self._reference[0], self._reference[1]) #regex used to find refrences
+
+    @property
+    def equality(self):
+        return self._equality
+
+    @equality.setter
+    def equality(self, value):
+        self._equality = value
+        self.equality_ex = r"[{}]".format(self._equality) #regex used to find assignments
 
     @staticmethod
     def replace(str1, str2, start, end):
@@ -39,7 +54,7 @@ class Config:
         """
         #make sure each line conatins one assignment
         for item in section:
-            if sum([item.count(x) for x in self.equality]) != 1:
+            if sum([item.count(x) for x in self._equality]) != 1:
                 raise Exception("In {}, can only have one equality symbol".format(item))
         #split each line into the value name and value assigment
         section = [re.split(self.equality_ex, item) for item in section]
@@ -63,6 +78,11 @@ class Config:
         return section
 
     def read_config(self, file_name):
+        """Read a config file at the location file_name and store it in the object
+        Input:
+            file_name : String name of file
+        Output: A Config object with the contents of the read file
+        """
         #parse all the data into a string with no extra white space or comments
         self.file = file_name
         with open(file_name) as config_file:
@@ -84,38 +104,47 @@ class Config:
         #split the section into lines
         sections = {key:value.strip().split("\n") for key, value in sections.items()}
 
-        self.config = {}
+        config_info = {}
         for header in sections:
-            self.config[header] = self.read_section(sections[header])
+            config_info[header] = self.read_section(sections[header])
 
-    def __getattr__(self, attr, *args):
-        if attr == "config":
-            raise KeyError("Must read a file before retrieving data")
-        else:
-            return self[attr]
+        return Config(config_info)
+
+
+
+class Config:
+    """
+    Allow access and storage of config information. Returned by a Config_Reader factory object.
+
+    Config objects provide several interfaces for accessing config information which is usually in a nested dictionary.
+    """
+    def __init__(self, config_info):
+        self._config = config_info
+
+    def keys(self):
+        return self._config.keys()
+
+    def items(self):
+        return self._config.items()
+
+    def __getattr__(self, attr):
+        return self._config[attr]
+
+    def __str__(self):
+        return str(self._config)
 
     def __getitem__(self, index):
-        if index in self.config.keys():
-            return self.config[index]
-        elif sum((list(subsection.keys()) for subsection in self.config.values()), []).count(index) == 1:
-            return {key:subsection[key] for subsection in self.config.values() for key in subsection.keys()}[index]
+        if index in self._config.keys():
+            return self._config[index]
+        elif sum((list(subsection.keys()) for subsection in self._config.values()), []).count(index) == 1:
+            return {key:subsection[key] for subsection in self._config.values() for key in subsection.keys()}[index]
         else:
             raise KeyError("{} not found in config file or defined more than once. Check file {}".format(repr(index), self.file))
 
-    def __str__(self):
-        return str(self.config)
-
-    def keys(self):
-        return self.config.keys()
-
-    def items(self):
-        return self.config.items()
-
-    def clear(self):
-        self.config.clear()
-
+def read(file_name):
+    reader = Config_Reader()
+    return reader.read_config(file_name)
 
 if __name__ == '__main__':
-    con = Config()
-    con.read_config("quad.config")
-    print(con.keys) 
+    con = read("quad.config")
+    print(con._config) 

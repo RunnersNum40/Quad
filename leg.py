@@ -1,6 +1,8 @@
 from math import asin, acos, atan2, sqrt, degrees
+import warnings
 
 class Leg:
+    """The leg class contains the inverse kinematics solver for a 3 DOF leg"""
     def __init__(self, quadrant, position):
         self.quadrant = quadrant
         self.offsets = position
@@ -9,13 +11,14 @@ class Leg:
         self.y = 0.0
         self.z = 0.0
 
-    def limbs(self, coxa, femur, tibia):
+    def set_limb_legths(self, coxa, femur, tibia):
         """Set the limb lengths"""
         self.coxa = coxa
         self.femur = femur
         self.tibia = tibia
 
-    def servos(self, hip, knee, ankle):
+    def set_servos(self, hip, knee, ankle):
+        """Pass the servo objects"""
         self.hip = hip
         self.knee = knee
         self.ankle = ankle
@@ -26,8 +29,6 @@ class Leg:
     @property
     def pos(self):
         return (self.x, self.y, self.z)
-
-    def set( )
 
     def set(self, x, y, z):
         self.x, self.y, self.z = (cord-offset for cord, offset in zip((x, y, z), self.offsets))

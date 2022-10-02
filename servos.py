@@ -16,6 +16,7 @@ def is_number(n):
 
 
 class Servos:
+    """This servo """
     def __init__(self, num=16, mimimum_pulse=450, maximum_pulse=2450, kill_angle=90, angle_offsets=None):
         self.kill_angle = kill_angle
         self.kit = ServoKit(channels=16)
@@ -59,6 +60,7 @@ class Servos:
 
 
 class Servo:
+    """"""
     def __init__(self, kit_servo, num, offset):
         self.kit_servo = kit_servo
         self.num = num
@@ -91,4 +93,11 @@ class Servo:
 
 if __name__ == '__main__':
     servos = Servos(num=16, mimimum_pulse=450, maximum_pulse=2450, kill_angle=90)
-    servos.set_all(90)
+    servo = servos[int(input("What servo: "))]
+    x = input("What angle: ")
+    while x != "end":
+        try:
+            servo.angle = float(x)
+        except ValueError:
+            print("Must input a number")
+        x = input("New angle: ")
